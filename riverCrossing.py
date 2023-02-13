@@ -15,6 +15,9 @@ coasts = {  # dictionary
     'left': set(entities),
     'right': set(),
 }
+aliases = {'goat': '🐐',
+           'wolf': '🐺',
+           'cabbage': '🥬'}
 
 
 # functions
@@ -24,105 +27,102 @@ def input_handler(available_entities):
     :param available_entities: available entities in current coast
     :return:
     """
+
     while True:
-        aliases = {'goat': '🐐',
-                   'g': '🐐',
-                   'wolf': '🐺',
-                   'w': '🐺',
-                   'cabbage': '🥬',
-                   'c': '🥬'}
+
         user_input = input('Type who do you want to take: ')
 
-        if user_input in available_entities:
-            print(f'you took: {user_input}')
-            return user_input
-        elif user_input in aliases.keys():
-            print(f'you took: {aliases[user_input]}')
-            return aliases[user_input]
-        elif user_input == '':
+        if user_input == '':
             print(f'you decided to float alone')
             return user_input
+        elif user_input in available_entities:
+            print(f'you took: {user_input}')
+            return user_input
         else:
-            print('incorrect input, try again')
+            for alias in aliases.keys():
+                if alias.startswith(user_input.lower()):
+                    passenger = aliases[alias]
+                    print(f'you took: {passenger}')
+                    return passenger
+
+        print('incorrect input, try again')
 
 
-def take_passanger():
+def take_passenger():
     """
-    This function took 1 passanger from current coast
+    This function took 1 passenger from current coast
     """
     cur_position = board['position']  # we figured out our board current position
-    current_island_passangers = coasts[cur_position]  # get available passangers from the current coast
-    user_input = input_handler(current_island_passangers)  # chose the passanger we want to take
-    taken_passanger = user_input  #
-    board['passanger'] = taken_passanger
-    if taken_passanger:
-        current_island_passangers.remove(user_input)  # delete passanger from the coast
+    current_island_passengers = coasts[cur_position]  # get available passengers from the current coast
+    passenger = input_handler(current_island_passengers)  # chose the passenger we want to take
+    board['passenger'] = passenger
+    if passenger:
+        current_island_passengers.remove(passenger)  # delete passenger from the coast
 
-
-#     return taken_passanger, current_island_passangers
 
 def float_board():
     board['position'] = 'left' if board['position'] == 'right' else 'right'
+    board['trips'] += 1
 
 
-def drop_passanger():
+def drop_passenger():
     """
-    This function depart 1 passanger to the recently arrived coast
+    This function depart 1 passenger to the recently arrived coast
     """
     cur_position = board['position']
-    passanger = board['passanger']
-    if passanger:
-        current_island_passangers = coasts[cur_position]
-        #         print(current_island_passangers)
-        current_island_passangers.add(passanger)
+    passenger = board['passenger']
+    if passenger:
+        current_island_passengers = coasts[cur_position]
+        #         print(current_island_passengers)
+        current_island_passengers.add(passenger)
 
 
-def rule_checker():
+def check_rule():
     """
     check out entities not to eat each others
-    :param coast_entities:
     :return:
     """
-    coast_entities = coasts[board['position']]
+    if not board['trips']:
+        return True
+
+    uncontrollable_coast_entities = coasts['left' if board['position'] == 'right' else 'right']
+
     for rule in prohibitions:
-        if coast_entities.issuperset(rule):
+        if uncontrollable_coast_entities.issuperset(rule):
             print(f'FAIL! {rule[1]} have been eaten by {rule[0]} while you been away')
-            print('game over')
+            print(' GAME OVER '.center(22, '🥺'))
             return False
 
-    if len(coasts['left']) == 0:
+    if not coasts['left']:
         display_current_state()
-        print('you win 👑')
+        print(' YOU WIN '.center(22, '👑'))
         return False
     return True
 
 
 def display_current_state():
     current_position = board['position']
-    current_passanger = board['passenger']
-    left_passangers = ''.join(coasts['left']).center(5, ' ')
-    right_passangers = ''.join(coasts['right']).center(5, ' ')
+    left_passengers = ''.join(coasts['left']).center(5, ' ')
+    right_passengers = ''.join(coasts['right']).center(5, ' ')
 
     # drawing information
     print('You are now at the ' + current_position + ' coast')
     if current_position == 'left':
-        print(f"🏝️{left_passangers}🏝️🚤➡️           🏝️{right_passangers}🏝️")
+        print(f"🏝️{left_passengers}🏝️🚤➡️           🏝️{right_passengers}🏝️")
     elif current_position == 'right':
-        print(f"🏝️{left_passangers}🏝️           ⬅️🚤🏝️{right_passangers}🏝️")
+        print(f"🏝️{left_passengers}🏝️           ⬅️🚤🏝️{right_passengers}🏝️")
 
 
 def main():
-    while coasts['left']:  # продовжувати гру поки на лівому березі хтось є
+    print('available aliases: {0}or push Enter to depart alone'
+          .format(''.join([f"\'{k}\': {v}, " for k, v in aliases.items()])))
+    while True:
+        if not check_rule():
+            break
         display_current_state()
-
-        # define start and destination positions
-        cur_coast = board['position']  # left or right
-
-        # take someone before left
-        take_passanger()
-        if not rule_checker(): break
+        take_passenger()
         float_board()
-        drop_passanger()
+        drop_passenger()
 
         # change variables and start again
 
