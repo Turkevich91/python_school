@@ -42,10 +42,13 @@ def input_handler(available_entities):
             for alias in aliases.keys():
                 if alias.startswith(user_input.lower()):
                     passenger = aliases[alias]
-                    print(f'you took: {passenger}')
-                    return passenger
-
-        print('incorrect input, try again')
+                    if passenger in available_entities:
+                        print(f'you took: {passenger}')
+                        return passenger
+                    else:
+                        print(f'you took a {passenger} but it not present on the current coast.')
+                        break
+            print('incorrect input, try again')
 
 
 def take_passenger():
