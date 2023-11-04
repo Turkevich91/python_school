@@ -22,6 +22,13 @@ paddle2 = paddle.get_rect()
 paddle1.midleft = (50, 300)
 paddle2.midright = (750, 300)
 
+# Встановлення шрифту для відображення рахунку
+font = pygame.font.Font(None, 36)
+
+# Ініціалізація рахунку гравців
+score_player_1 = 0
+score_player_2 = 0
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -31,8 +38,12 @@ while True:
     ballrect = ballrect.move(ball_speed)
 
     # Відбивання м'яча від меж екрану
-    if ballrect.left < 0 or ballrect.right > 800:
+    if ballrect.left < 0:
         ball_speed[0] = -ball_speed[0]
+        score_player_2 += 1  # Додаємо очко другому гравцю
+    if ballrect.right > 800:
+        ball_speed[0] = -ball_speed[0]
+        score_player_1 += 1  # Додаємо очко першому гравцю
     if ballrect.top < 0 or ballrect.bottom > 600:
         ball_speed[1] = -ball_speed[1]
 
@@ -48,9 +59,7 @@ while True:
         paddle2 = paddle2.move([0, paddle_speed])
 
     # Відбивання м'яча від ракеток
-    if paddle1.colliderect(ballrect):
-        ball_speed[0] = -ball_speed[0]
-    if paddle2.colliderect(ballrect):
+    if paddle1.colliderect(ballrect) or paddle2.colliderect(ballrect):
         ball_speed[0] = -ball_speed[0]
 
     # Малювання м'яча і ракеток на екрані
@@ -58,5 +67,10 @@ while True:
     screen.blit(ball, ballrect)
     screen.blit(paddle, paddle1)
     screen.blit(paddle, paddle2)
+
+    # Відображення рахунку
+    score_text = font.render(f"{score_player_1} : {score_player_2}", True, (255, 255, 255))
+    screen.blit(score_text, (375, 10))
+
     pygame.display.flip()
     pygame.time.delay(5)
