@@ -8,11 +8,25 @@ pygame.init()
 screen_width, screen_height = 800, 600
 screen = pygame.display.set_mode((screen_width, screen_height))
 
+jungle_bg = pygame.image.load('jungle_bg.png').convert_alpha()
+jungle_bg = pygame.transform.scale(jungle_bg, (screen_width, screen_height))
 # Load the dinosaur sprites
 dino_walk = pygame.image.load('dino_walk.png').convert_alpha()
 dino_stay = pygame.image.load('dino_stay.png').convert_alpha()
 dino_sit = pygame.image.load('dino_sit.png').convert_alpha()
+
+platform_image = pygame.image.load('platform.png').convert_alpha()
+platform_image = pygame.transform.scale(platform_image, (100, 44))
 # If the sprite sheet contains multiple sprites for animation, you'll need to segment them here
+platforms = [
+    pygame.Rect(50, 450, 100, 44),
+    pygame.Rect(350, 400, 100, 44),
+    pygame.Rect(600, 300, 100, 44),
+    pygame.Rect(350, 200, 100, 44),
+    pygame.Rect(150, 100, 100, 44),
+    pygame.Rect(600, 100, 100, 44),
+
+]
 
 # Current sprite
 current_sprite = dino_stay
@@ -42,6 +56,9 @@ while running:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+
+
+
 
     # Movement controls
     keys = pygame.key.get_pressed()
@@ -86,13 +103,40 @@ while running:
     if character_crouch:
         character.y = floor.y - character.height + 50  # Adjust character's y-position when crouching
 
+    on_platform = False
+    for platform in platforms:
+        if character.colliderect(platform) and velocity_y >= 0:
+            character.y = platform.y + (platform.height // 2 - character.height - 10)
+            on_platform = True
+            character_jump = False
+            velocity_y = 0
+            break
+
+
+    if not on_platform and not character_jump:
+        # Логика прыжка
+        velocity_y += gravity
+        character.y += velocity_y
+        if character.y > floor.y - character.height:
+            character.y = floor.y - character.height
+            character_jump = False
+            velocity_y = 0
+
+
+
     # Drawing
     screen.fill((0, 0, 100))
+    screen.blit(jungle_bg, (0, 0))
+
+    # Отображение платформ
+    for platform in platforms:
+        # pygame.draw.rect(screen, (225, 255, 0), platform)
+        screen.blit(platform_image, platform)
     # Draw the dinosaur sprite instead of a rectangle
     screen.blit(current_sprite, (character.x, character.y))
 
     # Draw the platforms
-    pygame.draw.rect(screen, (0, 0, 255), floor)
+    # pygame.draw.rect(screen, (0, 0, 255), floor)
 
     # Update the window
     pygame.display.flip()
